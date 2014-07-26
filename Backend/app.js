@@ -1,59 +1,33 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('static-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+#!/usr/bin/env node
+//var debug = require('debug')('Backend');
+//var app = require('../app');
+//
+//app.set('port', process.env.PORT || 3000);
+//
+//var server = app.listen(app.get('port'), function() {
+//  debug('Express server listening on port ' + server.address().port);
+//});
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
+var port = 3000;
+var express = require('express'),
+    items = require('./routes/items'),
+    mongoose = require('mongoose'),
+    bodyParser = require('body-parser');
 
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+mongoose.connect('mongodb://localhost/rsmc_ge_database');
 
-app.use(favicon());
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
 
-app.use('/', routes);
-app.use('/users', users);
+// parse application/json
+app.use(bodyParser.json())
 
-/// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
+app.get('/items', items.findAll);
+app.get('/items/:id', items.findById);
+app.post('/items', items.addItem);
+app.put('/items/:id', items.updateItem);
 
-/// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
-});
-
-
-module.exports = app;
+app.listen(port);
+console.log("RSMC GE backend listening on port %d", port);
